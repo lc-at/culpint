@@ -1,0 +1,33 @@
+@import url('https://fonts.googleapis.com/css?family=IBM Plex Sans');
+
+* {
+    border-radius: 0 !important;
+}
+
+body {
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: black !important;
+}
+table {
+    display: table !important;
+    word-wrap: break-word !important;
+}
+.bg-dark {
+    background: #01090C;
+    background: linear-gradient(90deg, #01090C 47%, #232300 100%);
+}
+
+.btn-dark, table .thead-dark th {
+    background: #01090C !important;
+}
+
+.terminal-textarea {
+    background-color: black !important;
+    color: #ffffff !important;
+    font-family: monospace;
+    font-size: 11pt !important;
+}
+
+table .thead-dark th {
+    background: #01090C !important;
+}

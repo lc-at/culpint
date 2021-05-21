@@ -1,0 +1,14 @@
+__pycache__
+__pycache__/*
+migrations/*
+migrations
+.vscode
+.vscode/*
+*.db
+culpine.db
+app/config.py
+venv
+venv/*
+test_s3.py
+altong
+app/uploads
