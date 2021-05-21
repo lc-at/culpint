@@ -1,0 +1,41 @@
+{% extends "skel.html" %}
+{% block container %}
+<h3>Kelola Pengguna
+    <a href="{{ url_for('add_user') }}" class="btn btn-sm btn-dark pt-1">
+        <i class="fa fa-plus"></i>
+        Add new
+    </a>
+</h3>
+<hr>
+<div class="table-responsive pb-3">
+    <table class="table table-hover table-condensed" id="tblUsers">
+        <thead class="thead-dark">
+            <th>Action</th>
+            <th>Username</th>
+            </th>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>
+                    <a href="{{ url_for('switch_user', id=row.id) }}" class="btn btn-sm btn-dark">
+                        <i class="fa fa-user-ninja"></i>
+                    </a>
+                    <a href="{{ url_for('delete_user', id=row.id) }}" class="btn btn-sm btn-danger">
+                        <i class="fa fa-trash"></i>
+                    </a>
+                </td>
+                <td>{{ row.username }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script>
+    $(document).ready(function () {
+        $('#tblUsers').DataTable();
+    });
+</script>
+{% endblock %}
