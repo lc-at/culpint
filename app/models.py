@@ -1,3 +1,4 @@
+import time
 from hashlib import sha512
 
 from . import app, db
@@ -40,6 +41,19 @@ class User(db.Model):
         password_hash = sha512(new_password.encode()).hexdigest()
         user.password = password_hash
         db.session.commit()
+
+    @staticmethod
+    def generate_token(username):
+        expiration_ts = str(round((time.time() + 3600)))
+        pt_token = ''.join((username, expiration_ts, app.config['SECRET_KEY']))
+        return ':'.join((expiration_ts, sha512(pt_token.encode()).hexdigest()))
+
+    @staticmethod
+    def validate_token(username, token):
+        expiration_ts, token_hash = token.split(':')
+        pt_token = ''.join((username, expiration_ts, app.config['SECRET_KEY']))
+        hashed = sha512(pt_token.encode()).hexdigest()
+        return hashed == token_hash and time.time() < int(expiration_ts)
 
 
 db.create_all()

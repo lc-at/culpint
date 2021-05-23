@@ -14,7 +14,7 @@ table {
 }
 .bg-dark {
     background: #01090C;
-    background: linear-gradient(90deg, #01090C 47%, #232300 100%);
+    background: linear-gradient(90deg, #01090C 47%, #151500 100%);
 }
 
 .btn-dark, table .thead-dark th {

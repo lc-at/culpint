@@ -13,6 +13,11 @@ def requires_auth(f):
     def decorated(*args, **kwargs):
         if 'authed' not in session:
             return redirect(url_for('login'))
+        elif request.endpoint != 'logout' and \
+                not User.validate_token(session['username'], session['token']):
+            flash('Token expired. Please log in again.', 'info')
+            return logout()
+        session['token'] = User.generate_token(session['username'])
         return f(*args, **kwargs)
 
     return decorated
@@ -42,13 +47,12 @@ def add_user():
     password = request.form.get('password')
     if request.method == 'POST' and (username and password):
         if User.query.filter_by(username=username).first():
-            flash('Pengguna dengan nama tersebut sudah ada.', 'danger')
+            flash('Username already exist.', 'danger')
         elif not re.match(r'^[a-z]+$', username):
-            flash('Nama pengguna harus hanya terdiri dari huruf kecil.',
-                  'danger')
+            flash('Username can only contain lowercase letters.', 'danger')
         else:
             User.create_user(username, password)
-            flash('Pengguna berhasil ditambahkan.', 'success')
+            flash('User successfully added.', 'success')
             return redirect(url_for('users'))
 
     return render_template('user/add.html')
@@ -62,7 +66,7 @@ def switch_user(id):
         abort(404)
     session.pop('su')
     session['username'] = user.username
-    flash('Berhasil mengganti user.', 'success')
+    flash('User successfully switched.', 'success')
     return redirect(url_for('root'))
 
 
@@ -73,11 +77,11 @@ def delete_user(id):
     if 'su' not in session or not user:
         abort(404)
     elif user.username == app.config['SU_USERNAME']:
-        flash('Pengguna super tidak diperbolehkan untuk dihapus.', 'danger')
+        flash('Unable to delete a superuser.', 'danger')
     else:
         db.session.delete(user)
         db.session.commit()
-        flash('Pengguna berhasil dihapus.', 'success')
+        flash('User successfully deleted.', 'success')
     return redirect(url_for('users'))
 
 
@@ -91,14 +95,13 @@ def login():
         if not (username and password):
             abort(403)
         elif User.authenticate(username, password):
-            flash('Selamat datang!', 'success')
             session['authed'] = True
             session['username'] = username
             session['su'] = username == app.config['SU_USERNAME']
+            session['token'] = User.generate_token(username)
             return redirect(url_for('root'))
         else:
-            flash('Terjadi kesalahan. Nama pengguna atau kata sandi salah.',
-                  'danger')
+            flash('Error. Invalid username or password.', 'danger')
     return render_template('user/login.html')
 
 
@@ -110,20 +113,22 @@ def change_password():
         password = request.form.get('passwd')
         cpassword = request.form.get('cpasswd')
         if not (password and cpassword) or cpassword != password:
-            flash('Kata sandi tidak diubah.', 'warning')
+            flash('Password unchanged.', 'warning')
         else:
             User.change_password(session['username'], password)
-            flash('Kata sandi berhasil diubah.', 'success')
+            flash('Password changed successfully.', 'success')
             return logout()
     return render_template('user/change_password.html')
 
 
 @app.route('/logout')
-@requires_auth
 def logout():
+    if not session.get('authed'):
+        return abort(403)
     session.pop('authed')
     session.pop('username')
+    session.pop('token')
     if session.get('su'):
         session.pop('su')
-    flash('Anda telah berhasil keluar.', 'info')
+    flash('Logged out successfully.', 'info')
     return redirect(url_for('login'))
