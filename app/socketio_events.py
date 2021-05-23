@@ -1,13 +1,14 @@
+import os
 import queue
 import subprocess
 import threading
 
-from flask import request
+from flask import current_app, request
 from flask_socketio import emit
 
 from . import socketio
-from .views import requires_auth
 from .utils import escape_ansi
+from .views import requires_auth
 
 clients = {}
 
@@ -30,7 +31,8 @@ def disconnect():
 @requires_auth
 def rng_streamer():
     emit('stdout', 'Initializing Recon-ng, please wait...\n', room=request.sid)
-    proc = subprocess.Popen(['/home/cat/Projects/culpint/recon-ng/recon-ng'],
+    rng_exec = os.path.join(current_app.root_path, 'recon-ng', 'recon-ng')
+    proc = subprocess.Popen([rng_exec],
                             stdin=subprocess.PIPE,
                             stdout=subprocess.PIPE,
                             stderr=subprocess.STDOUT)
