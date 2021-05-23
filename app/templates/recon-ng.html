@@ -1,14 +1,50 @@
 {% extends "skel.html" %}
+{% block container_class_suffix %}-fluid{% endblock %}
 {% block container %}
 <div class="input-group">
-    <textarea class="form-control terminal-textarea" rows="10" readonly>Ola</textarea>
+    <textarea id="terminalOutput" class="form-control terminal-textarea" rows="20" readonly></textarea>
 </div>
-<div class="row pt-2">
-    <div class="col-md-11 pr-0">
-        <input type="text" class="form-control" style="font-family: monospace;">
-    </div>
-    <div class="col-md-1 pl-0">
-        <button type="button" class="btn btn-dark w-100">Send</button>
+<div class="input-group pt-2">
+    <input id="command" type="text" class="form-control w-100 border-dark" style="font-family: monospace;"
+        autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Type a command"
+        autofocus>
+    <div class="pt-1">
+        <button id="btnSend" type="button" class="btn btn-sm btn-dark">Send</button>
+        <button id="btnClear" type="button" class="btn btn-sm btn-dark">Clear</button>
     </div>
 </div>
+{% endblock %}
+{% block body_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+    var socket = io('/', { transports: ['websocket'] });
+    var terminalOutput = $('#terminalOutput')
+    
+    socket.on('connect', function () {
+        socket.emit('init rng');
+    });
+
+    socket.on('stdout', function (data) {
+        const curr_output = terminalOutput.text();
+        terminalOutput.text(curr_output + data);
+        terminalOutput.scrollTop(terminalOutput[0].scrollHeight);
+    });
+
+    $('#btnClear').click(function () {
+        terminalOutput.text('');
+    });
+
+    $(document).on('keypress', function (e) {
+        if (e.which == 13) {
+            $('#btnSend').click();
+        }
+    });
+
+    $('#btnSend').click(function () {
+        var command = $('#command').val()
+        socket.emit('stdin', command + '\n');
+        $('#command').val('');
+    });
+</script>
 {% endblock %}
