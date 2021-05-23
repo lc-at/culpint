@@ -1,0 +1,3 @@
+[submodule "app/recon-ng"]
+	path = app/recon-ng
+	url = https://github.com/lanmaster53/recon-ng.git
