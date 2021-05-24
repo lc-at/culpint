@@ -18,6 +18,7 @@ clients = {}
 def connect():
     print('connected with client:', request.sid)
     clients[request.sid] = {'rng_proc': None}
+    print('clients:', clients)
 
 
 @socketio.on('disconnect')
