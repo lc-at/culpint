@@ -26,7 +26,19 @@ def requires_auth(f):
 @app.route('/')
 @requires_auth
 def root():
-    return render_template('recon-ng.html')
+    return redirect(url_for('rng_web'))
+
+
+@app.route('/rng_interactive')
+@requires_auth
+def rng_interactive():
+    return render_template('rng_interactive.html')
+
+
+@app.route('/rng_web')
+@requires_auth
+def rng_web():
+    return render_template('rng_web.html')
 
 
 @app.route('/users')
@@ -64,9 +76,12 @@ def switch_user(id):
     user = User.query.filter_by(id=id).first()
     if 'su' not in session or not user:
         abort(404)
-    session.pop('su')
-    session['username'] = user.username
-    flash('User successfully switched.', 'success')
+    elif user.username == session['username']:
+        flash('Unable to switch to the same user.', 'danger')
+    else:
+        session.pop('su')
+        session['username'] = user.username
+        flash('User successfully switched.', 'success')
     return redirect(url_for('root'))
 
 

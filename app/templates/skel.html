@@ -28,13 +28,24 @@
         </button>
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav mr-auto">
-                <li class="nav-item {% if request.endpoint == " root" %}active{% endif %}">
-                    <a class="nav-link" href="{/{ url_for('short_stroke_pattern') }}"><i class="fa fa-terminal"></i>
-                        Recon-ng</a>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <i class="fa fa-mountain"></i>
+                        Recon-ng
+                    </a>
+                    <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                        <a class="dropdown-item" href="{{ url_for('rng_web') }}">
+                            <i class="fa fa-globe"></i>
+                            Web</a>
+                        <a class="dropdown-item" href="{{ url_for('rng_interactive') }}">
+                            <i class="fa fa-terminal"></i>
+                            Interactive CLI</a>
+                    </div>
                 </li>
                 {% if session['su'] %}
-                <li class="nav-item {% if request.endpoint == " root" %}active{% endif %}">
-                    <a class="nav-link" href="{/{ url_for('users') }}"><i class="fa fa-users"></i>
+                <li class="nav-item {% if request.endpoint == 'root' %}active{% endif %}">
+                    <a class="nav-link" href="{{ url_for('users') }}"><i class="fa fa-users"></i>
                         Users</a>
                 </li>
                 {% endif %}

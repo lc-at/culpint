@@ -1,0 +1,18 @@
+{% extends "skel.html" %}
+{% block container %}
+<h3>Recon-ng Web</h3>
+<hr>
+<form>
+    <div class="form-group">
+        <label>Module name:</label>
+        <input type="text" class="form-control">
+    </div>
+</form>
+{% endblock %}
+{% block body_scripts %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+    var socket = io('/', { transports: ['websocket'] });
+</script>
+{% endblock %}
