@@ -1,15 +1,13 @@
-# culpstocks
-Python-based web project for checking stock price signals. Currently available only for checking short-stroke patterns.
+# CulpInt
+Python-based web interface for Recon-ng.
 ## Installation
-Culpstocks requires at least Python 3.7 (others are untested). It also requires a decent
+Culpint requires at least Python 3.7 (others are untested). It also requires a decent
 version of MariaDB (other SQL db type can be adjusted in the config file).
-1. If you are using MySQL: `sudo apt install default-libmysqlclient-dev`.
-2. `pip install flask flask_sqlalchemy flask_caching mysqlclient requests gunicorn`.
-3. Copy `app/config.py.default` file to `app/config.py` and adjust values inside it.
+... Updated later
 ## Running
 ### For production
 ```
-gunicorn --bind 0.0.0.0:9012 app:app
+gunicorn --bind 0.0.0.0:9012 app:app # updated later
 ```
 ### For development
 ```
