@@ -25,12 +25,16 @@ def connect():
 @requires_auth
 def disconnect():
     print('client disconnected:', request.sid)
+    proc = clients[request.sid]['rng_proc']
+    if proc.poll() is not None:
+        proc.kill()
     clients.pop(request.sid)
 
 
 @socketio.on('init rng')
 @requires_auth
 def rng_streamer():
+    emit('stdout', 'Socket ID: %s\n' % request.sid, room=request.sid)
     emit('stdout', 'Initializing Recon-ng, please wait...\n', room=request.sid)
     rng_exec = os.path.join(current_app.root_path, 'recon-ng', 'recon-ng')
     proc = subprocess.Popen([rng_exec],
@@ -47,7 +51,8 @@ def rng_streamer():
         while sid in clients:
             out = proc.stdout.read(1024)
             with reader_lock:
-                q.put(out)
+                if len(out):
+                    q.put(out)
             proc.stdout.flush()
 
     reader_thread = threading.Thread(target=reader, daemon=True)
@@ -61,6 +66,58 @@ def rng_streamer():
             continue
         socketio.emit('stdout', escape_ansi(out.decode()), room=request.sid)
 
+    proc.kill()
+
+
+@socketio.on('run rng module')
+@requires_auth
+def run_rng_module(data):
+    rng_proc = clients[request.sid]['rng_proc']
+    if rng_proc:
+        rng_proc.kill()
+    emit('stdout',
+         'Initializing... (Socket ID: %s)\n' % request.sid,
+         room=request.sid)
+
+    module_name, module_options = data
+
+    rng_exec_args = ['-m', module_name]
+    for option, value in module_options.items():
+        if not value:
+            continue
+        rng_exec_args += ['-o', '='.join((option, value))]
+
+    rng_exec = os.path.join(current_app.root_path, 'recon-ng', 'recon-cli')
+
+    proc = subprocess.Popen([rng_exec, *rng_exec_args, '-x', '--stealth'],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    sid = request.sid
+    clients[sid]['rng_proc'] = proc
+
+    q = queue.Queue()
+    reader_lock = threading.Lock()
+
+    def reader():
+        while sid in clients:
+            out = proc.stdout.read(1024)
+            with reader_lock:
+                if len(out):
+                    q.put(out)
+            proc.stdout.flush()
+
+    reader_thread = threading.Thread(target=reader, daemon=True)
+    reader_thread.start()
+
+    while request.sid in clients:
+        try:
+            with reader_lock:
+                out = q.get(timeout=.1)
+        except queue.Empty:
+            continue
+        socketio.emit('stdout', escape_ansi(out.decode()), room=request.sid)
+    
     proc.kill()
 
 
