@@ -1,29 +1,12 @@
-DEBUG = True
+DEBUG = False
 
 SU_USERNAME = 'superuser'
-SECRET_KEY = 'ujkajskjhHJDBSAHJmnbdn hj<adnsb x#whjrmb3'
+SECRET_KEY = 'fhxjkfbneijksdfhn ci34ujkrn3iukjz,cn jkc3m,f nz 43i.4k32,w'
 
 SQLALCHEMY_TRACK_MODIFICATIONS = True
 SQLALCHEMY_DATABASE_URI = ''.join([
     'mysql+mysqldb://',  # database type and connector
     'cat@localhost/',  # username, password, and host
-    'culpstocks',  # database name
+    'culpint',  # database name
     '?charset=utf8mb4'  # charset
 ])
-
-API_URL = 'https://www.indopremier.com/module/saham/include/json-charting.php'
-
-TELEGRAM_BOT_TOKEN = '1436921612:AAHkwybsvIT9W87bO9WnnAxojzWn5DJv-0k'
-TELEGRAM_REPORT_DEST_CHAT_ID = '410313855'
-
-CACHE_TYPE = 'simple'
-CACHE_DEFAULT_TIMEOUT = 60 * 10
-
-CRAWLER_INTERVAL = 60 * 10
-
-MARKET_OPENING_DAY = 0
-MARKET_OPENING_HOUR = 8
-MARKET_OPENING_MINUTE = 00
-MARKET_CLOSING_DAY = 4
-MARKET_CLOSING_HOUR = 15
-MARKET_CLOSING_MINUTE = 30
