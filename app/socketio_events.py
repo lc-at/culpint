@@ -26,7 +26,7 @@ def connect():
 def disconnect():
     print('client disconnected:', request.sid)
     proc = clients[request.sid]['rng_proc']
-    if proc.poll() is not None:
+    if proc is not None and proc.poll() is not None:
         proc.kill()
     clients.pop(request.sid)
 
@@ -117,7 +117,7 @@ def run_rng_module(data):
         except queue.Empty:
             continue
         socketio.emit('stdout', escape_ansi(out.decode()), room=request.sid)
-    
+
     proc.kill()
 
 
