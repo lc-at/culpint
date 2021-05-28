@@ -85,7 +85,7 @@ def run_rng_module(data):
     for option, value in module_options.items():
         if not value:
             continue
-        rng_exec_args += ['-o', '='.join((option, value))]
+        rng_exec_args += ['-o', '='.join((option, str(value)))]
 
     rng_exec = os.path.join(current_app.root_path, 'recon-ng', 'recon-cli')
 
