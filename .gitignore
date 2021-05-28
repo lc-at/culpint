@@ -8,6 +8,8 @@ migrations
 culpine.db
 app/config.py
 venv
+venv_prod
+venv_prod/*
 venv/*
 test_s3.py
 altong
