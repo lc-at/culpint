@@ -1,18 +1,168 @@
 {% extends "skel.html" %}
+{% block head %}
+<link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
 {% block container %}
-<h3>Recon-ng Web</h3>
+<h3>Run a Module</h3>
 <hr>
-<form>
+<form id="form">
     <div class="form-group">
         <label>Module name:</label>
-        <input type="text" class="form-control">
+        <select data-placeholder="Select a module" id="moduleNameDropdown" class="form-control" disabled>
+            <option></option>
+        </select>
+    </div>
+    <div id="moduleDetails" class="border border-secondary" style="display:none">
+        <div class="p-3">
+            <h4>
+                <span id="moduleName"></span>
+                <small class="text-muted" id="moduleAuthor"></small>
+            </h4>
+            <p id="moduleDescription"></p>
+            <p id="moduleComments"></p>
+            <p>
+                Query: <code id="moduleQuery"></code>
+            </p>
+            <hr>
+            <h6>Module Options</h6>
+            <div class="form-group">
+                <label class="col-form-label-sm"><code>SOURCE</code> <span data-toggle="collapse"
+                        data-target="#sourceOptions">(<u>?</u>)</span>:</label>
+                <div id="sourceOptions" class="collapse small">
+                    <table class="table table-sm table-bordered mb-0">
+                        <tr>
+                            <td><code>default</code></td>
+                            <td><code id="moduleQuery2"></code></td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;string&gt;</code></td>
+                            <td>string representing a single input</td>
+                        </tr>
+                        <tr>
+                            <td><code>&lt;path&gt;</code></td>
+                            <td>path to a file containing a list of inputs</td>
+                        </tr>
+                        <tr>
+                            <td><code>query &lt;sql&gt;</code></td>
+                            <td>database query returning one column of inputs</td>
+                        </tr>
+                    </table>
+                </div>
+                <input type="text" id="sourceOption" class="form-control form-control-sm monospaced"
+                    placeholder="Source of input (e.g. 'default', '192.178.1.1', 'query select ...')" required>
+            </div>
+            <div id="moduleOptions">
+            </div>
+        </div>
+        <button type="button" id="runButton" class="btn btn-dark w-100 btn-lg">
+            <i class="fa fa-play"></i>
+            Run
+        </button>
+    </div>
+    <div class="form-group">
+        <textarea class="form-control bg-white text-black mt-2 monospaced" rows="20" id="output" style="display:none;"
+            readonly></textarea>
     </div>
 </form>
 {% endblock %}
 {% block body_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 
 <script type="text/javascript" charset="utf-8">
     var socket = io('/', { transports: ['websocket'] });
+    var moduleNameDropdown = $('#moduleNameDropdown');
+    var rngOutput = $('#output');
+    var moduleOptionsData = {};
+
+    $(document).ready(function () {
+        moduleNameDropdown.select2({ theme: "bootstrap4" });
+        $.get("/api/recon-ng/list_modules", function (modulesList) {
+            $.each(modulesList, function (i, moduleName) {
+                moduleNameDropdown.append($('<option/>').val(moduleName).text(moduleName));
+            });
+            moduleNameDropdown.prop('disabled', false);
+        });
+    });
+    $(moduleNameDropdown).change(function () {
+        const moduleName = $(this).val();
+        $.get("/api/recon-ng/module/" + moduleName, function (moduleMeta) {
+            $('#moduleName').text(moduleMeta.name);
+            $('#moduleAuthor').text(moduleMeta.author);
+            $('#moduleDescription').text(moduleMeta.description);
+            $('#moduleComments').text('');
+            $.each(moduleMeta.comments, function (i, comment) {
+                $('#moduleComments').append($('<span/>').text(comment));
+            });
+            $('#moduleDetails').fadeIn();
+            $('#moduleQuery').text(moduleMeta.query);
+            $('#moduleQuery2').text(moduleMeta.query);
+
+            $('#moduleOptions').text('');
+            $.each(moduleMeta.options, function (i, option) {
+                const optionName = option[0];
+                const optionValue = option[1];
+                const optionRequired = option[2];
+                const optionDescription = option[3];
+                const formGroup = $('<div class="form-group">');
+                formGroup.append($('<label/>')
+                    .append($('<code/>').text(optionName.toUpperCase()))
+                    .append(':')
+                    .addClass('col-form-label-sm mb-0'));
+                formGroup.append($('<p/>')
+                    .text(optionDescription)
+                    .addClass('small text-muted'));
+                formGroup.append($('<input/>')
+                    .addClass('form-control form-control-sm monospaced module-option')
+                    .attr('type', 'text')
+                    .prop('required', optionRequired)
+                    .val(optionValue)
+                    .data(option));
+                $('#moduleOptions').append(formGroup);
+            });
+            $('#sourceOption').focus();
+        });
+    })
+    $('#runButton').click(function () {
+        const moduleName = moduleNameDropdown.val();
+        let moduleOptions = {}
+        $.each($('.module-option'), function (i, optionInput) {
+            optionInput = $(optionInput);
+            const option = optionInput.data()
+            const optionName = option[0]
+            const optionValue = option[1];
+            const optionRequired = option[2];
+            if (!optionInput.val().length && optionRequired) {
+                return optionInput.focus();
+            }
+            moduleOptions[optionName] = optionValue;
+        });
+        if (!$('#sourceOption').val().length) return $('#sourceOption').focus();
+        moduleOptions['source'] = $('#sourceOption').val();
+        rngOutput.text('');
+        socket.emit('run rng module', [moduleName, moduleOptions]);
+        rngOutput.show(0, function () {
+            $("html, body").animate({ scrollTop: $(document).height() }, 500);
+        });
+    });
+    $('#form').submit(function () {
+        $('#runButton').click();
+        e.preventDefault();
+    })
+    $('#form').keydown(function (e) {
+        if (e.key == 'Enter') {
+            $('#runButton').click();
+            e.preventDefault();
+        }
+    });
+
+    // SOCKET.IO EVENTS
+    socket.on('stdout', function (data) {
+        const curr_output = rngOutput.text();
+        rngOutput.text(curr_output + data);
+        rngOutput.scrollTop(rngOutput[0].scrollHeight);
+    });
 </script>
 {% endblock %}

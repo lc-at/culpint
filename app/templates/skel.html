@@ -36,8 +36,8 @@
                     </a>
                     <div class="dropdown-menu" aria-labelledby="navbarDropdown">
                         <a class="dropdown-item" href="{{ url_for('rng_web') }}">
-                            <i class="fa fa-globe"></i>
-                            Web</a>
+                            <i class="fa fa-play"></i>
+                            Run a Module</a>
                         <a class="dropdown-item" href="{{ url_for('rng_interactive') }}">
                             <i class="fa fa-terminal"></i>
                             Interactive CLI</a>
@@ -68,7 +68,7 @@
         </div>
         {% endif %}
     </nav>
-    <div class="container{% block container_class_suffix %}{% endblock %} pt-3">
+    <div class="container{% block container_class_suffix %}{% endblock %} py-3">
         <div class="d-none d-md-block pt-1"></div>
         {% include "components/alert.html" %}
         {% block container %}
