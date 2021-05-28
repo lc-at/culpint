@@ -31,3 +31,12 @@ table {
 table .thead-dark th {
     background: #01090C !important;
 }
+
+.monospaced {
+    font-family: monospace !important;
+    font-size: 11pt !important;
+}
+
+.text-black {
+    color: #000000 !important;
+}
