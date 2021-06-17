@@ -41,6 +41,9 @@
                         <a class="dropdown-item" href="{{ url_for('rng_interactive') }}">
                             <i class="fa fa-terminal"></i>
                             Interactive CLI</a>
+                        <a class="dropdown-item" href="{{ url_for('rng_api_keys') }}">
+                            <i class="fa fa-key"></i>
+                            API Keys</a>
                     </div>
                 </li>
                 {% if session['su'] %}

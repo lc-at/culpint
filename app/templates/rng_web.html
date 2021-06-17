@@ -13,6 +13,9 @@
         <select data-placeholder="Select a module" id="moduleNameDropdown" class="form-control" disabled>
             <option></option>
         </select>
+        <div class="small">
+            <a href="{{ url_for('rng_reload') }}">Reload Recon-ng cache</a>
+        </div>
     </div>
     <div id="moduleDetails" class="border border-secondary" style="display:none">
         <div class="p-3">
