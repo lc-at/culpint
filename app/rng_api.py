@@ -38,7 +38,7 @@ class CulpintReconNgAPI:
                                         (value, name))
         if not result:
             return self._base._query_keys('INSERT INTO keys VALUES (?, ?)',
-                                         (name, value))
+                                          (name, value))
         return result
 
     def remove_api_key(self, name):
