@@ -13,7 +13,9 @@ db = SQLAlchemy(app)
 
 from .api import bp as api_bp  # noqa
 from .views import *  # noqa: E402,F401,F403
+from .rng_api import CulpintReconNgAPI  # noqa
 
 app.register_blueprint(api_bp)
+app.rng_api = CulpintReconNgAPI()
 
 from .socketio_events import *  # noqa
