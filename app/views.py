@@ -29,16 +29,49 @@ def root():
     return redirect(url_for('rng_web'))
 
 
-@app.route('/rng_interactive')
+@app.route('/recon-ng/cli')
 @requires_auth
 def rng_interactive():
     return render_template('rng_interactive.html')
 
 
-@app.route('/rng_web')
+@app.route('/recon-ng/run-module')
 @requires_auth
 def rng_web():
     return render_template('rng_web.html')
+
+
+@app.route('/recon-ng/api-keys', methods=['GET', 'POST'])
+@requires_auth
+def rng_api_keys():
+    api_keys = app.rng_api.get_api_keys()
+    if request.method == 'POST':
+        for key, value in api_keys:
+            submitted_value = request.form.get(key)
+            delete_key = request.form.get('%s_deleted' % key)
+            if delete_key:
+                flash('Removed API key: %s' % key, 'info')
+                app.rng_api.remove_api_key(key)
+            elif submitted_value and submitted_value != value:
+                flash('Updated API key: %s' % key, 'info')
+                app.rng_api.add_api_key(key, submitted_value)
+
+        new_key_name = request.form.get('new_key_name')
+        new_key_value = request.form.get('new_key_value')
+        if new_key_name and new_key_value:
+            flash('Added API key: %s' % new_key_name, 'info')
+            app.rng_api.add_api_key(new_key_name, new_key_value)
+
+        api_keys = app.rng_api.get_api_keys()
+    return render_template('rng_api_keys.html', api_keys=api_keys)
+
+
+@app.route('/recon-ng/reload')
+@requires_auth
+def rng_reload():
+    app.rng_api.reload()
+    flash('Recon-ng reloaded successfully.', 'info')
+    return redirect(url_for('root'))
 
 
 @app.route('/users')

@@ -1,0 +1,43 @@
+{% extends "skel.html" %}
+{% block container %}
+<h3>API Keys</h3>
+<hr>
+<form method="post">
+    <table class="table table-bordered table-sm">
+        <thead class="thead-dark">
+            <tr>
+                <th>Name</th>
+                <th>Value</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for api_key in api_keys %}
+            <tr>
+                <td class="monospaced">{{ api_key[0] }}</td>
+                <td class="w-100">
+                    <input name="{{ api_key[0] }}" value="{{ api_key[1] or '' }}"
+                        class="form-control form-control-sm monospaced">
+                    {% if api_key[1] %}
+                    <div class="form-check d-block">
+                        <input type="checkbox" name="{{ api_key[0] }}_deleted" class="form-check-input">
+                        <label class="form-check-label small">delete?</label>
+                    </div>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td>
+                    <input name="new_key_name" class="form-control form-control-sm monospaced"
+                        placeholder="New key name">
+                </td>
+                <td>
+                    <input name="new_key_value" class="form-control form-control-sm monospaced"
+                        placeholder="New key value">
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="submit" class="btn btn-dark"><i class="fa fa-save"></i> Save</button>
+</form>
+{% endblock %}
