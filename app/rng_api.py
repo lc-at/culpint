@@ -44,3 +44,6 @@ class CulpintReconNgAPI:
     def remove_api_key(self, name):
         return self._base._query_keys('DELETE FROM keys WHERE name=?',
                                       (name, ))
+
+    def get_modules_index(self):
+        return self._base._module_index
