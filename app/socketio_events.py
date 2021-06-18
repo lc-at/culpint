@@ -48,7 +48,7 @@ def rng_streamer():
     reader_lock = threading.Lock()
 
     def reader():
-        while sid in clients:
+        while sid in clients and proc.poll() is None:
             out = proc.stdout.read(1024)
             with reader_lock:
                 if len(out):
@@ -58,7 +58,7 @@ def rng_streamer():
     reader_thread = threading.Thread(target=reader, daemon=True)
     reader_thread.start()
 
-    while request.sid in clients:
+    while request.sid in clients and proc.poll() is None:
         try:
             with reader_lock:
                 out = q.get(timeout=.1)
@@ -66,14 +66,15 @@ def rng_streamer():
             continue
         socketio.emit('stdout', escape_ansi(out.decode()), room=request.sid)
 
-    proc.kill()
+    if proc.poll() is not None:
+        proc.kill()
 
 
 @socketio.on('run rng module')
 @requires_auth
 def run_rng_module(data):
     rng_proc = clients[request.sid]['rng_proc']
-    if rng_proc:
+    if rng_proc is not None and rng_proc.poll() is not None:
         rng_proc.kill()
     emit('stdout',
          'Initializing... (Socket ID: %s)\n' % request.sid,
@@ -100,7 +101,7 @@ def run_rng_module(data):
     reader_lock = threading.Lock()
 
     def reader():
-        while sid in clients:
+        while sid in clients and proc.poll() is None:
             out = proc.stdout.read(1024)
             with reader_lock:
                 if len(out):
@@ -110,7 +111,7 @@ def run_rng_module(data):
     reader_thread = threading.Thread(target=reader, daemon=True)
     reader_thread.start()
 
-    while request.sid in clients:
+    while request.sid in clients and proc.poll() is None:
         try:
             with reader_lock:
                 out = q.get(timeout=.1)
@@ -118,7 +119,55 @@ def run_rng_module(data):
             continue
         socketio.emit('stdout', escape_ansi(out.decode()), room=request.sid)
 
-    proc.kill()
+    if proc.poll() is not None:
+        proc.kill()
+
+
+@socketio.on('run rng command')
+@requires_auth
+def run_rng_command(command):
+    rng_proc = clients[request.sid]['rng_proc']
+    if rng_proc is not None and rng_proc.poll() is not None:
+        rng_proc.kill()
+    emit('stdout',
+         'Initializing... (Socket ID: %s)\n' % request.sid,
+         room=request.sid)
+
+    rng_exec = os.path.join(current_app.root_path, 'recon-ng', 'recon-cli')
+
+    proc = subprocess.Popen([rng_exec, '-C', command],
+                            stdin=subprocess.PIPE,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT)
+    sid = request.sid
+    clients[sid]['rng_proc'] = proc
+
+    q = queue.Queue()
+    reader_lock = threading.Lock()
+
+    def reader():
+        while sid in clients and proc.poll() is None:
+            out = proc.stdout.read(1024)
+            with reader_lock:
+                if len(out):
+                    q.put(out)
+            proc.stdout.flush()
+
+    reader_thread = threading.Thread(target=reader, daemon=True)
+    reader_thread.start()
+
+    while request.sid in clients and proc.poll() is None:
+        try:
+            with reader_lock:
+                out = q.get(timeout=.1)
+        except queue.Empty:
+            continue
+        socketio.emit('stdout', escape_ansi(out.decode()), room=request.sid)
+
+    if proc.poll() is not None:
+        proc.kill()
+
+    socketio.emit('proc exited', room=request.sid)
 
 
 @socketio.on('stdin')

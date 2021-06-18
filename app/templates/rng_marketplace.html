@@ -1,0 +1,60 @@
+{% extends "skel.html" %}
+{% block container %}
+<h3>Marketplace</h3>
+<hr>
+<div class="col-sm-12 table-responsive">
+    <table class="table table-sm table-bordered compact" id="tblMarketplace">
+        <thead class="thead-dark">
+            <tr>
+                <th>Path</th>
+                <th>Status</th>
+                <th>Version</th>
+                <th>Last updated</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for module in mi %}
+            <tr>
+                <td>
+                    <span class="monospaced" data-toggle="collapse" data-target="#sourceOptions{{loop.index0}}">
+                        {{ module['path'] }} <i class="fa fa-angle-down"></i>
+                    </span>
+                    <div id="sourceOptions{{loop.index0}}" class="collapse small">
+                        <ul>
+                            <li>Author: {{ module['author'] }}</li>
+                            <li>Description: {{ module['description'] }}</li>
+                            <li>Files: <code>{{ module['files'] }}</code></li>
+                            <li>Dependencies: <code>{{ module['dependencies'] }}</code></li>
+                            <li>Required keys: <code>{{ module['required_keys'] }}</code></li>
+                        </ul>
+                    </div>
+                </td>
+                <td>
+                    {% set status = module['status'] %}
+                    {{ status }}
+                    {% if status in ['not installed', 'outdated'] %}
+                    <a href="{{ url_for('rng_run_command', command='marketplace install ' + module['path'], next=url_for('rng_refresh', next=url_for(request.endpoint))) }}"
+                        class="text-dark"><i class="fa fa-plus-square"></i></a>
+                    {% endif %}
+                    {% if status in ['installed', 'outdated'] %}
+                    <a href="{{ url_for('rng_run_command', command='marketplace remove ' + module['path'], next=url_for('rng_refresh', next=url_for(request.endpoint))) }}"
+                        class="text-dark"><i class="fa fa-minus-square"></i></a>
+                    {% endif %}
+                </td>
+                <td>{{ module['version'] }}</td>
+                <td>{{ module['last_updated'] }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
+{% block body_scripts %}
+<script>
+    $(document).ready(function () {
+        $('#tblMarketplace').DataTable({
+            responsive: true,
+        });
+    });
+</script>
+{% endblock %}
