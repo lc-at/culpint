@@ -41,6 +41,15 @@ def rng_web():
     return render_template('rng_web.html')
 
 
+@app.route('/recon-ng/run-command')
+@requires_auth
+def rng_run_command():
+    command = request.args.get('command')
+    if not command:
+        abort(404)
+    return render_template('rng_run_command.html', command=command)
+
+
 @app.route('/recon-ng/api-keys', methods=['GET', 'POST'])
 @requires_auth
 def rng_api_keys():
@@ -66,12 +75,23 @@ def rng_api_keys():
     return render_template('rng_api_keys.html', api_keys=api_keys)
 
 
-@app.route('/recon-ng/reload')
+@app.route('/recon-ng/marketplace')
 @requires_auth
-def rng_reload():
+def rng_marketplace():
+    if request.args.get('refresh') == '1':
+        return redirect(url_for('rng_refresh'), next=url_for(request.endpoint))
+    modules_index = app.rng_api.get_modules_index()
+    return render_template('rng_marketplace.html',
+                           mi=sorted(modules_index, key=lambda m: m['path']))
+
+
+@app.route('/recon-ng/refresh')
+@requires_auth
+def rng_refresh():
     app.rng_api.reload()
-    flash('Recon-ng reloaded successfully.', 'info')
-    return redirect(url_for('root'))
+    flash('Recon-ng refreshed successfully.', 'info')
+    return redirect(
+        request.args.get('next') or request.referrer or url_for('root'))
 
 
 @app.route('/users')

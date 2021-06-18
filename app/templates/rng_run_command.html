@@ -1,0 +1,55 @@
+{% extends "skel.html" %}
+{% block head %}
+<link rel="stylesheet"
+    href="https://cdn.jsdelivr.net/npm/@ttskch/select2-bootstrap4-theme@x.x.x/dist/select2-bootstrap4.min.css">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+{% endblock %}
+{% block container %}
+<h3>Run command: <code>{{ command }}</code></h3>
+<hr>
+<textarea class="form-control bg-white text-black mt-2 monospaced" rows="20" id="output" readonly></textarea>
+<span id="redirectionTimer" style="display:none">
+    Process exited. Redirecting in <span id="timerSeconds">5</span> seconds. <button class="btn btn-xs btn-dark"
+        id="btnCancelRedirect">cancel</button>
+</span>
+{% endblock %}
+{% block body_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+
+<script type="text/javascript" charset="utf-8">
+    var socket = io('/', { transports: ['websocket'] });
+    var rngOutput = $('#output');
+    const redirectUrl = '{{ request.args.get("next") or "" }}';
+    var redirectCancelled = false;
+
+    $('#btnCancelRedirect').click(function () {
+        redirectCancelled = true;
+        $('#redirectionTimer').fadeOut();
+    });
+
+    socket.on('connect', function () {
+        const command = '{{ command }}';
+        socket.emit('run rng command', command);
+    });
+
+    socket.on('stdout', function (data) {
+        const curr_output = rngOutput.text();
+        rngOutput.text(curr_output + data);
+        rngOutput.scrollTop(rngOutput[0].scrollHeight);
+    });
+
+    socket.on('proc exited', function () {
+        $('#redirectionTimer').fadeIn();
+        let remaining = 4;
+        setInterval(function () {
+            $('#timerSeconds').text(remaining);
+            remaining -= 1;
+            if (!redirectCancelled && remaining == -1) {
+                window.location.href = redirectUrl;
+                return;
+            }
+        }, 1000)
+    });
+</script>
+{% endblock %}
