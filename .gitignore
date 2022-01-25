@@ -8,6 +8,7 @@ migrations
 culpine.db
 app/config.py
 venv
+tvenv
 venv_prod
 venv_prod/*
 venv/*
